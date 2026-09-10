@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HydroSense Pro - Industrial Water Level Monitoring</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- MQTT.js -->
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f7f9fb",
+                        "secondary-container": "#d0e1fb",
+                        "surface-bright": "#f7f9fb",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-tertiary-container": "#ffede6",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#737686",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-container": "#54647a",
+                        "primary": "#004ac6",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-background": "#191c1e",
+                        "secondary": "#505f76",
+                        "on-surface-variant": "#434655",
+                        "surface-tint": "#0053db",
+                        "on-primary-fixed": "#00174b",
+                        "tertiary": "#943700",
+                        "inverse-surface": "#2d3133",
+                        "surface-container": "#eceef0",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-container": "#bc4800",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c6d7",
+                        "on-surface": "#191c1e",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary-fixed": "#360f00",
+                        "primary-container": "#2563eb",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-variant": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "primary-fixed": "#dbe1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "4px",
+                        "stack-md": "12px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "stack-lg": "24px",
+                        "container-padding-mobile": "16px",
+                        "container-padding-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-xl": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f7f9fb; /* enforce light mode background */
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f7f9fb; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c6d7; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #737686; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col lg:flex-row">
+<audio id="alertSound" preload="auto" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed top-20 right-4 sm:right-8 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden lg:flex flex-col fixed left-0 top-0 h-full w-[260px] py-stack-lg px-base bg-surface-container-lowest border-r border-outline-variant shadow-md z-40">
+<div class="mb-8 px-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold font-headline-md text-headline-md shadow-sm">
+                HS
+            </div>
+<div>
+<h1 class="text-headline-md font-headline-md font-bold text-primary truncate">HydroSense Pro</h1>
+<p class="text-label-md font-label-md text-secondary truncate">Station 01</p>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-fixed text-on-secondary-fixed rounded-lg transition-all text-label-md font-label-md group cursor-pointer" id="navOverviewBtn">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container transition-all rounded-lg text-label-md font-label-md group cursor-pointer" id="navMqttConfigBtn">
+<span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+<span>MQTT Config</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-2 pt-4 border-t border-outline-variant">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-container text-on-primary-container rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity shadow-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                Export Data
+            </button>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container transition-all rounded-lg text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span>Help</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container transition-all rounded-lg text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- TopAppBar (Mobile & Global Header Elements) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding-mobile md:px-container-padding-desktop h-16 bg-surface border-b border-outline-variant shadow-sm lg:pl-[292px]"> <!-- Added left padding to offset sidebar on desktop -->
+<!-- Mobile Brand (Hidden on Desktop as Sidebar handles it) -->
+<div class="flex items-center gap-2 lg:hidden">
+<span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary truncate">HydroSense Pro</h1>
+</div>
+<!-- Desktop Contextual Title -->
+<div class="hidden lg:flex flex-col">
+<h2 class="text-headline-md font-headline-md font-semibold text-on-surface">Water Level Monitoring System</h2>
+<p class="text-label-md font-label-md text-secondary">Realtime Monitoring via ESP32 &amp; HiveMQ</p>
+</div>
+<div class="flex items-center gap-4">
+<!-- Status Indicator -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant shadow-sm cursor-pointer hover:border-primary transition-all" id="mqttStatusBadge" title="Klik untuk membuka Pengaturan MQTT">
+<div class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75" id="mqttStatusPing"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-slate-400" id="mqttStatusDot"></span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary uppercase tracking-wider font-semibold" id="mqttStatusText">Disconnected</span>
+</div>
+<!-- Actions -->
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container" id="muteToggle" title="Mute/Unmute Alert Sound">
+<span class="material-symbols-outlined" id="muteIcon">volume_up</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container" id="topSettingsBtn" title="Pengaturan MQTT & Koneksi">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant ml-2">
+<img alt="Operator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeWVOzqpnuzbunf_IyaAYVWNpmwUIiayl-kARMI4BrnwJp5QIgBIEQR5Ully_6aFgjWPXe7kYO-7J8k5UgFO9fVXrV7JgurDrElwvuL93oZnqH-k_lzokzLNPp1vQ37tovTe4lfa1YDUywl2UtXWml920fMLP_oKyxusRlYjj8Aj9jLfmQ4-LThWu1cWAdhJZC2cDHFuG_lVSsiOoB65U9ZBW48MERyw6_7iS13r-N3NChQepArtIpA4VRDyiQNKtjGDGghAoEuSo"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full pt-20 pb-24 lg:pb-8 px-container-padding-mobile lg:px-container-padding-desktop lg:ml-[260px] max-w-[1600px] mx-auto">
+<div class="flex flex-col gap-gutter w-full" id="viewOverview">
+<!-- Top Row Widgets -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Current Water Level Card (Bento Large) -->
+<div class="col-span-1 md:col-span-8 bg-surface-container-lowest rounded-xl p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-[#F1F5F9] flex flex-col relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6 z-10 relative">
+<div>
+<h3 class="text-body-md font-body-md text-secondary font-medium">Current Water Level</h3>
+<p class="text-label-sm font-label-sm text-outline mt-1">Sensor: Mini Lidar TOF VL53L0X</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant">waves</span>
+</div>
+<div class="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 z-10 relative">
+<!-- Big Number Display -->
+<div class="text-center lg:text-left flex flex-col items-center lg:items-start">
+<div class="flex items-baseline gap-2">
+<span class="text-[72px] lg:text-[96px] leading-none font-headline-xl font-bold text-primary tracking-tighter" id="currentLevelDisplay">75</span>
+<span class="text-headline-md font-headline-md text-secondary font-semibold">cm</span>
+</div>
+<div class="mt-2 flex items-center gap-2 text-label-md font-label-md">
+<span class="text-[#10b981] flex items-center"><span class="material-symbols-outlined text-[16px]">arrow_downward</span> -2.4cm</span>
+<span class="text-outline">vs last hour</span>
+</div>
+</div>
+<!-- Progress Visualization (Gauge/Bar) -->
+<div class="w-full max-w-[300px] flex flex-col gap-2">
+<div class="flex justify-between text-label-sm font-label-sm text-secondary">
+<span>0 cm (Empty)</span>
+<span id="labelMaxScale">200 cm (Max)</span>
+</div>
+<div class="h-6 w-full bg-surface-container rounded-full overflow-hidden relative shadow-inner">
+<div class="h-full bg-primary-container rounded-full transition-all duration-1000 ease-in-out w-[37.5%] flex items-center justify-end pr-2 relative overflow-hidden" id="levelProgressBar">
+<!-- shimmer effect -->
+<div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+</div>
+</div>
+<div class="flex justify-between text-label-sm font-label-sm mt-1">
+<span class="text-[#10b981] font-semibold" id="labelAman">Aman (&lt; 100)</span>
+<span class="text-[#f59e0b] font-semibold" id="labelSiaga">Siaga (100-150)</span>
+<span class="text-error font-semibold" id="labelBahaya">Bahaya (&gt; 150)</span>
+</div>
+</div>
+</div>
+<!-- Decorative background elements -->
+<div class="absolute -bottom-10 -right-10 w-40 h-40 bg-secondary-container rounded-full opacity-20 blur-3xl pointer-events-none transition-all group-hover:scale-110"></div>
+</div>
+<!-- System Status Card -->
+<div class="col-span-1 md:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-[#F1F5F9] flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-body-md font-body-md text-secondary font-medium">System Status</h3>
+<span class="material-symbols-outlined text-outline-variant">info</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center text-center" id="systemStatusContainer">
+<div class="w-24 h-24 rounded-full bg-[#10b981]/10 flex items-center justify-center mb-4" id="systemStatusIconBg">
+<span class="material-symbols-outlined text-[48px] text-[#10b981]" id="systemStatusIcon" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h4 class="text-headline-lg font-headline-lg text-[#10b981]" id="systemStatusText">Aman</h4>
+<p class="text-body-sm font-body-sm text-secondary mt-2" id="systemStatusDesc">All systems operational. Water level is within safe operational thresholds.</p>
+</div>
+<div class="mt-6 pt-4 border-t border-surface-container flex justify-between items-center text-label-sm font-label-sm text-outline">
+<span>Last updated: <span id="lastUpdatedText">Just now</span></span>
+<button class="text-primary hover:underline" id="viewLogsLink" type="button">View Logs</button>
+</div>
+</div>
+</div>
+<!-- Middle Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Realtime Chart Card (Spans 2 columns on desktop) -->
+<div class="col-span-1 lg:col-span-2 bg-surface-container-lowest rounded-xl p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-[#F1F5F9] flex flex-col h-[400px]">
+<div class="flex justify-between items-center mb-4 pb-4 border-b border-surface-container">
+<div>
+<h3 class="text-body-md font-body-md text-on-surface font-semibold">Live Telemetry</h3>
+<p class="text-label-sm font-label-sm text-secondary">Historical level over last 30 minutes</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-label-sm font-label-sm bg-surface-container text-on-surface rounded-md hover:bg-surface-container-high transition-colors">15m</button>
+<button class="px-3 py-1 text-label-sm font-label-sm bg-primary-container text-on-primary-container rounded-md shadow-sm">30m</button>
+<button class="px-3 py-1 text-label-sm font-label-sm bg-surface-container text-on-surface rounded-md hover:bg-surface-container-high transition-colors">1h</button>
+</div>
+</div>
+<div class="flex-1 w-full relative">
+<canvas id="waterLevelChart"></canvas>
+</div>
+</div>
+<!-- Threshold Settings Card -->
+<div class="col-span-1 bg-surface-container-lowest rounded-xl p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-[#F1F5F9] flex flex-col">
+<div class="flex justify-between items-center mb-6 pb-4 border-b border-surface-container">
+<div>
+<h3 class="text-body-md font-body-md text-on-surface font-semibold">Threshold Settings</h3>
+<p class="text-label-sm font-label-sm text-secondary">Atur batas dinamis &amp; sync ke ESP32</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant">tune</span>
+</div>
+<form class="flex-1 flex flex-col gap-5" id="thresholdForm" onsubmit="return false;">
+<!-- Aman Input -->
+<div class="relative">
+<label class="block text-label-md font-label-md text-secondary mb-1" for="thresholdAman">Aman (Safe) Max (cm)</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 w-3 h-3 rounded-full bg-[#10b981]"></span>
+<input class="block w-full pl-9 pr-12 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface" id="thresholdAman" placeholder="100" type="number" value="100"/>
+<span class="absolute right-3 text-secondary text-label-md">cm</span>
+</div>
+<p class="text-[11px] text-secondary mt-0.5">Air di bawah nilai ini berstatus Aman</p>
+</div>
+<!-- Siaga Input -->
+<div class="relative">
+<label class="block text-label-md font-label-md text-secondary mb-1" for="thresholdSiaga">Siaga (Warning) Max (cm)</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 w-3 h-3 rounded-full bg-[#f59e0b]"></span>
+<input class="block w-full pl-9 pr-12 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface" id="thresholdSiaga" placeholder="150" type="number" value="150"/>
+<span class="absolute right-3 text-secondary text-label-md">cm</span>
+</div>
+<p class="text-[11px] text-secondary mt-0.5">Air antara Aman &amp; Siaga berstatus Peringatan</p>
+</div>
+<!-- Bahaya Input -->
+<div class="relative">
+<label class="block text-label-md font-label-md text-secondary mb-1" for="thresholdBahaya">Bahaya (Danger) Limit (cm)</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 w-3 h-3 rounded-full bg-error"></span>
+<input class="block w-full pl-9 pr-12 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface" id="thresholdBahaya" placeholder="200" type="number" value="200"/>
+<span class="absolute right-3 text-secondary text-label-md">cm</span>
+</div>
+<p class="text-[11px] text-secondary mt-0.5">Air melebihi nilai ini memicu Sirine Bahaya</p>
+</div>
+<div class="mt-auto pt-2">
+<button class="w-full flex justify-center items-center gap-2 bg-[#2563EB] text-white py-2.5 px-4 rounded-lg text-body-sm font-body-sm font-medium hover:bg-primary-fixed-variant active:scale-[0.98] transition-all shadow-sm cursor-pointer" id="saveThresholdsBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+Simpan &amp; Kirim ke MQTT
+</button>
+<p class="text-[11px] text-center text-secondary mt-2 flex items-center justify-center gap-1" id="thresholdSyncHint">
+<span class="material-symbols-outlined text-[14px] text-primary">sync</span>
+Terkirim via MQTT: <span class="font-medium text-on-surface">ews/banjir/threshold/set</span>
+</p>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- MQTT Config View -->
+<div class="hidden flex-col gap-gutter w-full max-w-4xl mx-auto" id="viewMqttConfig">
+    <!-- Info Banner for HiveMQ Cloud -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-start gap-4 shadow-sm">
+        <span class="material-symbols-outlined text-[#2563eb] text-[28px] mt-0.5">cloud</span>
+        <div class="flex-1">
+            <h4 class="text-body-md font-semibold text-blue-900">Petunjuk Koneksi HiveMQ Cloud</h4>
+            <p class="text-body-sm text-blue-800 mt-1 leading-relaxed">
+                Di browser web, MQTT berjalan melalui <strong>Secure WebSockets (WSS)</strong> pada port <strong>8884</strong> dengan path <strong>/mqtt</strong>. 
+                Pastikan memasukkan <em>Cluster URL</em> (misal: <code class="bg-blue-100 px-1 py-0.5 rounded text-blue-900 font-mono text-xs">xxxxxx.s1.eu.hivemq.cloud</code>) serta <em>Username &amp; Password</em> yang dibuat di menu <strong>Access Management</strong> HiveMQ Cloud Console.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Config Card -->
+    <div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-[#F1F5F9] flex flex-col">
+        <div class="flex justify-between items-center mb-6 pb-4 border-b border-surface-container">
+            <div>
+                <h3 class="text-body-md font-body-md text-on-surface font-semibold">MQTT Broker Settings (HiveMQ Cloud)</h3>
+                <p class="text-label-sm font-label-sm text-secondary">Konfigurasi alamat broker, kredensial, dan topik komunikasi</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700" id="mqttConnectionStatusTag">
+                    <span class="w-2 h-2 rounded-full bg-slate-400" id="mqttConnectionStatusTagDot"></span>
+                    <span id="mqttConnectionStatusTagText">Disconnected</span>
+                </span>
+            </div>
+        </div>
+
+        <form class="flex flex-col gap-5" id="mqttForm" onsubmit="return false;">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <!-- Broker URL -->
+                <div class="md:col-span-8">
+                    <label class="block text-label-md font-label-md text-secondary mb-1" for="mqttHost">HiveMQ Cloud Broker Host</label>
+                    <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-mono text-sm" id="mqttHost" placeholder="contoh: xxxxxx.s1.eu.hivemq.cloud" type="text" value=""/>
+                </div>
+                <!-- Port -->
+                <div class="md:col-span-2">
+                    <label class="block text-label-md font-label-md text-secondary mb-1" for="mqttPort">Port (WSS)</label>
+                    <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-mono text-sm" id="mqttPort" placeholder="8884" type="number" value="8884"/>
+                </div>
+                <!-- Path -->
+                <div class="md:col-span-2">
+                    <label class="block text-label-md font-label-md text-secondary mb-1" for="mqttPath">WS Path</label>
+                    <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-mono text-sm" id="mqttPath" placeholder="/mqtt" type="text" value="/mqtt"/>
+                </div>
+            </div>
+
+            <!-- Credentials -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-label-md font-label-md text-secondary mb-1" for="mqttUsername">Username</label>
+                    <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface text-sm" id="mqttUsername" placeholder="Username kredensial HiveMQ" type="text"/>
+                </div>
+                <div>
+                    <label class="block text-label-md font-label-md text-secondary mb-1" for="mqttPassword">Password</label>
+                    <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface text-sm" id="mqttPassword" placeholder="Password kredensial HiveMQ" type="password"/>
+                </div>
+            </div>
+
+            <!-- Topics -->
+            <div class="pt-2 border-t border-surface-container">
+                <h4 class="text-body-sm font-semibold text-on-surface mb-3">Topik MQTT</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-label-md font-label-md text-secondary mb-1" for="topicTelemetry">
+                            Topik Sensor Ketinggian (Menerima / Subscribe)
+                        </label>
+                        <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-mono text-sm" id="topicTelemetry" placeholder="ews/banjir/level" type="text" value="ews/banjir/level"/>
+                        <p class="text-[11px] text-secondary mt-1">Data ketinggian air dari sensor ESP32 masuk lewat topik ini.</p>
+                    </div>
+                    <div>
+                        <label class="block text-label-md font-label-md text-secondary mb-1" for="topicThresholdSet">
+                            Topik Batas Ketinggian (Mengirim / Publish)
+                        </label>
+                        <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-mono text-sm" id="topicThresholdSet" placeholder="ews/banjir/threshold/set" type="text" value="ews/banjir/threshold/set"/>
+                        <p class="text-[11px] text-secondary mt-1">Web mempublikasikan batas Aman/Siaga/Bahaya ke topik ini.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client ID & Options -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div>
+                    <label class="block text-label-md font-label-md text-secondary mb-1" for="mqttClientId">Client ID (Otomatis)</label>
+                    <input class="block w-full px-4 py-2 text-body-md font-body-md bg-surface border border-[#E2E8F0] rounded-lg focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-mono text-xs text-secondary" id="mqttClientId" type="text" readonly/>
+                </div>
+                <div class="flex items-center gap-6 pt-4">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="mqttSslCheck" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary" checked disabled/>
+                        <span class="text-body-sm text-secondary font-medium">Gunakan SSL/TLS (WSS)</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="simToggle" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary" checked/>
+                        <span class="text-body-sm text-secondary font-medium">Simulasi jika Offline</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 pt-4 border-t border-surface-container flex flex-wrap items-center gap-3">
+                <button class="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-[#2563EB] text-white py-2.5 px-6 rounded-lg text-body-sm font-body-sm font-medium hover:bg-primary-fixed-variant active:scale-[0.98] transition-all shadow-sm cursor-pointer" id="mqttConnectBtn" type="button">
+                    <span class="material-symbols-outlined text-[18px]" id="mqttConnectBtnIcon">link</span>
+                    <span id="mqttConnectBtnText">Hubungkan ke HiveMQ</span>
+                </button>
+                <button class="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-surface-container text-on-surface py-2.5 px-4 rounded-lg text-body-sm font-body-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer" id="mqttSaveBtn" type="button">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    Simpan Pengaturan
+                </button>
+                <button class="sm:ml-auto flex justify-center items-center gap-1 text-secondary hover:text-error py-2 px-3 text-body-sm transition-colors cursor-pointer" id="mqttResetBtn" type="button">
+                    <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+                    Reset Default
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Live MQTT Terminal / Log View -->
+    <div class="bg-[#1e293b] text-slate-100 rounded-xl p-5 shadow-lg border border-slate-700 flex flex-col">
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-400 text-[20px]">terminal</span>
+                <span class="text-sm font-mono font-semibold tracking-wide text-slate-200">MQTT Activity Console</span>
+            </div>
+            <button class="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer" id="clearLogBtn" type="button">
+                <span class="material-symbols-outlined text-[14px]">delete</span>
+                Bersihkan Log
+            </button>
+        </div>
+        <div class="font-mono text-xs h-48 overflow-y-auto flex flex-col gap-1 pr-2 select-text" id="mqttLogs">
+            <div class="text-slate-400">[SYSTEM] Siap menghubungkan ke HiveMQ Cloud...</div>
+        </div>
+    </div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 shadow-[0px_-4px_20px_rgba(0,0,0,0.03)] bg-surface pb-safe">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full p-2 min-w-[64px] transition-transform active:scale-90" href="#" id="mobileNavHome">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-label-sm font-label-sm mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 min-w-[64px] hover:bg-surface-container-high rounded-lg transition-colors" href="#" id="mobileNavOverview">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-label-sm font-label-sm mt-1">Monitoring</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 min-w-[64px] hover:bg-surface-container-high rounded-lg transition-colors" href="#" id="mobileNavSettings">
+<span class="material-symbols-outlined">tune</span>
+<span class="text-label-sm font-label-sm mt-1">MQTT</span>
+</a>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 min-w-[64px] hover:bg-surface-container-high rounded-lg transition-colors relative" id="mobileMuteToggle" type="button">
+<span class="material-symbols-outlined" id="mobileMuteIcon">volume_up</span>
+<span class="text-label-sm font-label-sm mt-1">Alarm</span>
+</nav>
+<!-- Interactive Logic & Chart Initialization -->
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Audio setup
+            const alertSound = document.getElementById('alertSound');
+            const muteToggle = document.getElementById('muteToggle');
+            const muteIcon = document.getElementById('muteIcon');
+            const mobileMuteToggle = document.getElementById('mobileMuteToggle');
+            const mobileMuteIcon = document.getElementById('mobileMuteIcon');
+            let isMuted = false;
+            let bahayaStateActive = false;
+            let audioUnlocked = false;
+
+            // Unlock Web Audio autoplay restrictions on first user interaction
+            function unlockAudio() {
+                if (!audioUnlocked && alertSound) {
+                    alertSound.play().then(() => {
+                        alertSound.pause();
+                        alertSound.currentTime = 0;
+                        audioUnlocked = true;
+                    }).catch(() => {});
+                }
+            }
+            document.addEventListener('click', unlockAudio, { once: true });
+            document.addEventListener('touchstart', unlockAudio, { once: true });
+
+            function toggleMute() {
+                isMuted = !isMuted;
+                const iconText = isMuted ? 'volume_off' : 'volume_up';
+                if (muteIcon) muteIcon.textContent = iconText;
+                if (mobileMuteIcon) mobileMuteIcon.textContent = iconText;
+
+                if (isMuted) {
+                    alertSound.pause();
+                    alertSound.currentTime = 0;
+                    showToast('Alarm dibisukan (Muted)', 'info');
+                } else {
+                    showToast('Alarm diaktifkan', 'info');
+                    if (bahayaStateActive) {
+                        alertSound.play().catch(e => console.log('Audio play failed:', e));
+                    }
+                }
+            }
+
+            if (muteToggle) muteToggle.addEventListener('click', toggleMute);
+            if (mobileMuteToggle) mobileMuteToggle.addEventListener('click', toggleMute);
+
+            // Toast Helper
+            function showToast(message, type = 'info') {
+                const toastContainer = document.getElementById('toastContainer');
+                if (!toastContainer) return;
+                const toast = document.createElement('div');
+                const bgColors = {
+                    success: 'bg-emerald-600 text-white',
+                    error: 'bg-red-600 text-white',
+                    warning: 'bg-amber-600 text-white',
+                    info: 'bg-slate-800 text-white'
+                };
+                const icons = {
+                    success: 'check_circle',
+                    error: 'error',
+                    warning: 'warning',
+                    info: 'info'
+                };
+                toast.className = `${bgColors[type] || bgColors.info} px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm transition-all duration-300 transform translate-x-10 opacity-0 pointer-events-auto border border-white/10`;
+                toast.innerHTML = `
+                    <span class="material-symbols-outlined text-[20px] shrink-0">${icons[type] || 'info'}</span>
+                    <span class="flex-1 text-xs font-medium leading-snug">${message}</span>
+                `;
+                toastContainer.appendChild(toast);
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-x-10', 'opacity-0');
+                });
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-x-10');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+
+            // MQTT Terminal Logger
+            const mqttLogs = document.getElementById('mqttLogs');
+            function escapeHtml(str) {
+                return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            function addLog(type, text) {
+                if (!mqttLogs) return;
+                const now = new Date();
+                const timeStr = now.toTimeString().split(' ')[0];
+                const logRow = document.createElement('div');
+                let badgeClass = 'text-slate-400';
+                let colorClass = 'text-slate-300';
+                
+                if (type === 'INFO') { badgeClass = 'text-sky-400'; colorClass = 'text-slate-200'; }
+                else if (type === 'SUCCESS') { badgeClass = 'text-emerald-400 font-bold'; colorClass = 'text-emerald-200'; }
+                else if (type === 'WARN') { badgeClass = 'text-amber-400 font-semibold'; colorClass = 'text-amber-200'; }
+                else if (type === 'ERROR') { badgeClass = 'text-red-400 font-bold'; colorClass = 'text-red-200'; }
+                else if (type === 'RX') { badgeClass = 'text-cyan-400 font-bold'; colorClass = 'text-white'; }
+                else if (type === 'TX') { badgeClass = 'text-purple-400 font-bold'; colorClass = 'text-white'; }
+
+                logRow.innerHTML = `<span class="text-slate-500">[${timeStr}]</span> <span class="${badgeClass}">[${type}]</span> <span class="${colorClass}">${escapeHtml(text)}</span>`;
+                mqttLogs.appendChild(logRow);
+                mqttLogs.scrollTop = mqttLogs.scrollHeight;
+            }
+
+            const clearLogBtn = document.getElementById('clearLogBtn');
+            if (clearLogBtn) {
+                clearLogBtn.addEventListener('click', () => {
+                    if (mqttLogs) {
+                        mqttLogs.innerHTML = '<div class="text-slate-400">[SYSTEM] Log dibersihkan.</div>';
+                    }
+                });
+            }
+
+            // Threshold Variables & Inputs
+            const thresholdAmanInput = document.getElementById('thresholdAman');
+            const thresholdSiagaInput = document.getElementById('thresholdSiaga');
+            const thresholdBahayaInput = document.getElementById('thresholdBahaya');
+            const labelAman = document.getElementById('labelAman');
+            const labelSiaga = document.getElementById('labelSiaga');
+            const labelBahaya = document.getElementById('labelBahaya');
+            const labelMaxScale = document.getElementById('labelMaxScale');
+            const saveThresholdsBtn = document.getElementById('saveThresholdsBtn');
+
+            // Load saved thresholds or set defaults
+            let thresholdAmanVal = parseInt(localStorage.getItem('ews_threshold_aman')) || 100;
+            let thresholdSiagaVal = parseInt(localStorage.getItem('ews_threshold_siaga')) || 150;
+            let thresholdBahayaVal = parseInt(localStorage.getItem('ews_threshold_bahaya')) || 200;
+
+            thresholdAmanInput.value = thresholdAmanVal;
+            thresholdSiagaInput.value = thresholdSiagaVal;
+            thresholdBahayaInput.value = thresholdBahayaVal;
+
+            function applyThresholdsLocally(aman, siaga, bahaya) {
+                thresholdAmanVal = aman;
+                thresholdSiagaVal = siaga;
+                thresholdBahayaVal = bahaya;
+
+                thresholdAmanInput.value = aman;
+                thresholdSiagaInput.value = siaga;
+                thresholdBahayaInput.value = bahaya;
+
+                if (labelAman) labelAman.textContent = `Aman (< ${thresholdAmanVal})`;
+                if (labelSiaga) labelSiaga.textContent = `Siaga (${thresholdAmanVal}-${thresholdSiagaVal})`;
+                if (labelBahaya) labelBahaya.textContent = `Bahaya (> ${thresholdSiagaVal})`;
+                if (labelMaxScale) labelMaxScale.textContent = `${thresholdBahayaVal} cm (Max)`;
+
+                if (waterChart && waterChart.options && waterChart.options.scales && waterChart.options.scales.y) {
+                    waterChart.options.scales.y.max = thresholdBahayaVal;
+                    waterChart.update('none');
+                }
+
+                localStorage.setItem('ews_threshold_aman', thresholdAmanVal);
+                localStorage.setItem('ews_threshold_siaga', thresholdSiagaVal);
+                localStorage.setItem('ews_threshold_bahaya', thresholdBahayaVal);
+
+                // Re-evaluate current level with new thresholds
+                const currentVal = parseFloat(currentLevelDisplay.innerText) || 0;
+                evaluateLevelStatus(currentVal);
+            }
+
+            // View Switching Logic
+            const navOverviewBtn = document.getElementById('navOverviewBtn');
+            const navMqttConfigBtn = document.getElementById('navMqttConfigBtn');
+            const viewOverview = document.getElementById('viewOverview');
+            const viewMqttConfig = document.getElementById('viewMqttConfig');
+            const topSettingsBtn = document.getElementById('topSettingsBtn');
+            const viewLogsLink = document.getElementById('viewLogsLink');
+            const mqttStatusBadge = document.getElementById('mqttStatusBadge');
+            const mobileNavHome = document.getElementById('mobileNavHome');
+            const mobileNavOverview = document.getElementById('mobileNavOverview');
+            const mobileNavSettings = document.getElementById('mobileNavSettings');
+
+            function switchView(view) {
+                if(view === 'overview') {
+                    viewOverview.classList.remove('hidden');
+                    viewOverview.classList.add('flex');
+                    viewMqttConfig.classList.add('hidden');
+                    viewMqttConfig.classList.remove('flex');
+                    
+                    if (navOverviewBtn) {
+                        navOverviewBtn.classList.add('bg-secondary-fixed', 'text-on-secondary-fixed');
+                        navOverviewBtn.classList.remove('text-secondary', 'hover:bg-surface-container');
+                    }
+                    if (navMqttConfigBtn) {
+                        navMqttConfigBtn.classList.remove('bg-secondary-fixed', 'text-on-secondary-fixed');
+                        navMqttConfigBtn.classList.add('text-secondary', 'hover:bg-surface-container');
+                    }
+                } else {
+                    viewOverview.classList.add('hidden');
+                    viewOverview.classList.remove('flex');
+                    viewMqttConfig.classList.remove('hidden');
+                    viewMqttConfig.classList.add('flex');
+                    
+                    if (navMqttConfigBtn) {
+                        navMqttConfigBtn.classList.add('bg-secondary-fixed', 'text-on-secondary-fixed');
+                        navMqttConfigBtn.classList.remove('text-secondary', 'hover:bg-surface-container');
+                    }
+                    if (navOverviewBtn) {
+                        navOverviewBtn.classList.remove('bg-secondary-fixed', 'text-on-secondary-fixed');
+                        navOverviewBtn.classList.add('text-secondary', 'hover:bg-surface-container');
+                    }
+                }
+            }
+
+            if (navOverviewBtn) navOverviewBtn.addEventListener('click', () => switchView('overview'));
+            if (navMqttConfigBtn) navMqttConfigBtn.addEventListener('click', () => switchView('mqtt'));
+            if (topSettingsBtn) topSettingsBtn.addEventListener('click', () => switchView('mqtt'));
+            if (viewLogsLink) viewLogsLink.addEventListener('click', () => switchView('mqtt'));
+            if (mqttStatusBadge) mqttStatusBadge.addEventListener('click', () => switchView('mqtt'));
+            if (mobileNavHome) mobileNavHome.addEventListener('click', () => switchView('overview'));
+            if (mobileNavOverview) mobileNavOverview.addEventListener('click', () => switchView('overview'));
+            if (mobileNavSettings) mobileNavSettings.addEventListener('click', () => switchView('mqtt'));
+
+            // Chart.js Setup
+            const ctx = document.getElementById('waterLevelChart').getContext('2d');
+            const initialData = Array.from({length: 30}, () => Math.floor(Math.random() * (80 - 65 + 1) + 65));
+            const labels = Array.from({length: 30}, (_, i) => `-${30-i}m`);
+
+            const waterChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Water Level (cm)',
+                        data: initialData,
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#2563EB',
+                        pointBorderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#191c1e',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            padding: 10,
+                            cornerRadius: 6,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Ketinggian: ${context.parsed.y} cm`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#737686', maxTicksLimit: 6 }
+                        },
+                        y: {
+                            grid: { color: '#F1F5F9', borderDash: [5, 5] },
+                            ticks: { color: '#737686' },
+                            min: 0,
+                            max: thresholdBahayaVal
+                        }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
+            });
+
+            // UI Elements for Water Level and Status
+            const currentLevelDisplay = document.getElementById('currentLevelDisplay');
+            const levelProgressBar = document.getElementById('levelProgressBar');
+            const systemStatusIconBg = document.getElementById('systemStatusIconBg');
+            const systemStatusIcon = document.getElementById('systemStatusIcon');
+            const systemStatusText = document.getElementById('systemStatusText');
+            const systemStatusDesc = document.getElementById('systemStatusDesc');
+            const lastUpdatedText = document.getElementById('lastUpdatedText');
+
+            // Evaluate Level Status (Aman, Siaga, Bahaya)
+            function evaluateLevelStatus(newVal) {
+                // Progress Bar Width
+                const percentage = Math.max(0, Math.min(100, (newVal / thresholdBahayaVal) * 100));
+                if (levelProgressBar) {
+                    levelProgressBar.style.width = `${percentage}%`;
+                }
+
+                if (newVal >= thresholdBahayaVal) {
+                    if (levelProgressBar) {
+                        levelProgressBar.className = 'h-full bg-error rounded-full transition-all duration-700 ease-in-out flex items-center justify-end pr-2 relative overflow-hidden';
+                    }
+                    if (systemStatusIconBg) systemStatusIconBg.className = 'w-24 h-24 rounded-full bg-error/10 flex items-center justify-center mb-4 animate-pulse';
+                    if (systemStatusIcon) {
+                        systemStatusIcon.className = 'material-symbols-outlined text-[48px] text-error';
+                        systemStatusIcon.textContent = 'warning';
+                    }
+                    if (systemStatusText) {
+                        systemStatusText.className = 'text-headline-lg font-headline-lg text-error font-bold';
+                        systemStatusText.textContent = 'Bahaya';
+                    }
+                    if (systemStatusDesc) {
+                        systemStatusDesc.textContent = 'KRITIS: Ketinggian air melampaui batas bahaya (' + thresholdBahayaVal + ' cm)! Sirine peringatan berbunyi.';
+                    }
+                    
+                    if (!bahayaStateActive) {
+                        bahayaStateActive = true;
+                        if (!isMuted && alertSound) {
+                            alertSound.play().catch(e => console.log('Audio play blocked:', e));
+                        }
+                    }
+                } else if (newVal >= thresholdSiagaVal) {
+                    if (levelProgressBar) {
+                        levelProgressBar.className = 'h-full bg-[#f59e0b] rounded-full transition-all duration-700 ease-in-out flex items-center justify-end pr-2 relative overflow-hidden';
+                    }
+                    if (systemStatusIconBg) systemStatusIconBg.className = 'w-24 h-24 rounded-full bg-[#f59e0b]/10 flex items-center justify-center mb-4';
+                    if (systemStatusIcon) {
+                        systemStatusIcon.className = 'material-symbols-outlined text-[48px] text-[#f59e0b]';
+                        systemStatusIcon.textContent = 'error';
+                    }
+                    if (systemStatusText) {
+                        systemStatusText.className = 'text-headline-lg font-headline-lg text-[#f59e0b] font-bold';
+                        systemStatusText.textContent = 'Siaga';
+                    }
+                    if (systemStatusDesc) {
+                        systemStatusDesc.textContent = 'Peringatan: Ketinggian air mendekati ambang batas bahaya (' + thresholdSiagaVal + '-' + thresholdBahayaVal + ' cm).';
+                    }
+                    
+                    bahayaStateActive = false;
+                    if (alertSound) {
+                        alertSound.pause();
+                        alertSound.currentTime = 0;
+                    }
+                } else {
+                    if (levelProgressBar) {
+                        levelProgressBar.className = 'h-full bg-primary-container rounded-full transition-all duration-700 ease-in-out flex items-center justify-end pr-2 relative overflow-hidden';
+                    }
+                    if (systemStatusIconBg) systemStatusIconBg.className = 'w-24 h-24 rounded-full bg-[#10b981]/10 flex items-center justify-center mb-4';
+                    if (systemStatusIcon) {
+                        systemStatusIcon.className = 'material-symbols-outlined text-[48px] text-[#10b981]';
+                        systemStatusIcon.textContent = 'check_circle';
+                    }
+                    if (systemStatusText) {
+                        systemStatusText.className = 'text-headline-lg font-headline-lg text-[#10b981] font-bold';
+                        systemStatusText.textContent = 'Aman';
+                    }
+                    if (systemStatusDesc) {
+                        systemStatusDesc.textContent = 'Kondisi air dalam batas normal dan aman (< ' + thresholdSiagaVal + ' cm). Semua sistem terpantau stabil.';
+                    }
+                    
+                    bahayaStateActive = false;
+                    if (alertSound) {
+                        alertSound.pause();
+                        alertSound.currentTime = 0;
+                    }
+                }
+            }
+
+            // Process Incoming Water Level Telemetry
+            function processWaterLevel(newVal) {
+                const numericVal = Math.round(Number(newVal));
+                if (isNaN(numericVal)) return;
+
+                if (currentLevelDisplay) currentLevelDisplay.innerText = numericVal;
+                
+                evaluateLevelStatus(numericVal);
+
+                // Update Chart
+                if (waterChart && waterChart.data && waterChart.data.datasets[0]) {
+                    waterChart.data.datasets[0].data.shift();
+                    waterChart.data.datasets[0].data.push(numericVal);
+                    
+                    const d = new Date();
+                    const timeStr = d.getHours() + ':' + (d.getMinutes()<10?'0':'') + d.getMinutes() + ':' + (d.getSeconds()<10?'0':'') + d.getSeconds();
+                    waterChart.data.labels.shift();
+                    waterChart.data.labels.push(timeStr);
+                    waterChart.update('none');
+                }
+
+                if (lastUpdatedText) {
+                    lastUpdatedText.textContent = new Date().toLocaleTimeString();
+                }
+            }
+
+            // Simulation Fallback
+            const simToggle = document.getElementById('simToggle');
+            let simInterval = null;
+
+            function startSimulation() {
+                if (simInterval) return;
+                addLog('INFO', 'Memulai mode simulasi data sensor...');
+                simInterval = setInterval(() => {
+                    if (isMqttConnected) {
+                        stopSimulation();
+                        return;
+                    }
+                    if (!simToggle || !simToggle.checked) return;
+
+                    let lastVal = waterChart.data.datasets[0].data[waterChart.data.datasets[0].data.length - 1] || 75;
+                    let change = (Math.random() - 0.5) * 6;
+                    let newVal = Math.max(5, Math.min(thresholdBahayaVal + 15, Math.round(lastVal + change)));
+                    
+                    // Occasionally simulate a high wave for demo alert
+                    if (Math.random() > 0.94) newVal = thresholdSiagaVal + 8;
+                    
+                    processWaterLevel(newVal);
+                }, 3000);
+            }
+
+            function stopSimulation() {
+                if (simInterval) {
+                    clearInterval(simInterval);
+                    simInterval = null;
+                    addLog('INFO', 'Mode simulasi dinonaktifkan (Data langsung dari MQTT aktif).');
+                }
+            }
+
+            if (simToggle) {
+                simToggle.addEventListener('change', () => {
+                    if (simToggle.checked && !isMqttConnected) {
+                        startSimulation();
+                    } else if (!simToggle.checked) {
+                        stopSimulation();
+                    }
+                });
+            }
+
+            // ==========================================
+            // MQTT HiveMQ Cloud Implementation
+            // ==========================================
+            const mqttHostInput = document.getElementById('mqttHost');
+            const mqttPortInput = document.getElementById('mqttPort');
+            const mqttPathInput = document.getElementById('mqttPath');
+            const mqttUsernameInput = document.getElementById('mqttUsername');
+            const mqttPasswordInput = document.getElementById('mqttPassword');
+            const topicTelemetryInput = document.getElementById('topicTelemetry');
+            const topicThresholdSetInput = document.getElementById('topicThresholdSet');
+            const mqttClientIdInput = document.getElementById('mqttClientId');
+            const mqttConnectBtn = document.getElementById('mqttConnectBtn');
+            const mqttConnectBtnText = document.getElementById('mqttConnectBtnText');
+            const mqttConnectBtnIcon = document.getElementById('mqttConnectBtnIcon');
+            const mqttSaveBtn = document.getElementById('mqttSaveBtn');
+            const mqttResetBtn = document.getElementById('mqttResetBtn');
+            
+            // Header status badge elements
+            const mqttStatusText = document.getElementById('mqttStatusText');
+            const mqttStatusDot = document.getElementById('mqttStatusDot');
+            const mqttStatusPing = document.getElementById('mqttStatusPing');
+            const mqttConnectionStatusTag = document.getElementById('mqttConnectionStatusTag');
+            const mqttConnectionStatusTagDot = document.getElementById('mqttConnectionStatusTagDot');
+            const mqttConnectionStatusTagText = document.getElementById('mqttConnectionStatusTagText');
+
+            let mqttClient = null;
+            let isMqttConnected = false;
+
+            // Generate or load Client ID
+            let storedClientId = localStorage.getItem('ews_mqtt_client_id');
+            if (!storedClientId) {
+                storedClientId = 'ews_web_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('ews_mqtt_client_id', storedClientId);
+            }
+            mqttClientIdInput.value = storedClientId;
+
+            // Load saved settings
+            function loadSavedMqttSettings() {
+                mqttHostInput.value = localStorage.getItem('ews_mqtt_host') || '';
+                mqttPortInput.value = localStorage.getItem('ews_mqtt_port') || '8884';
+                mqttPathInput.value = localStorage.getItem('ews_mqtt_path') || '/mqtt';
+                mqttUsernameInput.value = localStorage.getItem('ews_mqtt_username') || '';
+                mqttPasswordInput.value = localStorage.getItem('ews_mqtt_password') || '';
+                topicTelemetryInput.value = localStorage.getItem('ews_topic_telemetry') || 'ews/banjir/level';
+                topicThresholdSetInput.value = localStorage.getItem('ews_topic_threshold_set') || 'ews/banjir/threshold/set';
+            }
+            loadSavedMqttSettings();
+
+            function saveMqttSettings(showNotify = true) {
+                localStorage.setItem('ews_mqtt_host', mqttHostInput.value.trim());
+                localStorage.setItem('ews_mqtt_port', mqttPortInput.value.trim());
+                localStorage.setItem('ews_mqtt_path', mqttPathInput.value.trim());
+                localStorage.setItem('ews_mqtt_username', mqttUsernameInput.value.trim());
+                localStorage.setItem('ews_mqtt_password', mqttPasswordInput.value);
+                localStorage.setItem('ews_topic_telemetry', topicTelemetryInput.value.trim());
+                localStorage.setItem('ews_topic_threshold_set', topicThresholdSetInput.value.trim());
+                if (showNotify) {
+                    showToast('Konfigurasi MQTT berhasil disimpan di browser!', 'success');
+                    addLog('SUCCESS', 'Konfigurasi MQTT tersimpan.');
+                }
+            }
+
+            if (mqttSaveBtn) {
+                mqttSaveBtn.addEventListener('click', () => saveMqttSettings(true));
+            }
+
+            if (mqttResetBtn) {
+                mqttResetBtn.addEventListener('click', () => {
+                    if (confirm('Kembalikan konfigurasi MQTT ke default?')) {
+                        localStorage.removeItem('ews_mqtt_host');
+                        localStorage.removeItem('ews_mqtt_port');
+                        localStorage.removeItem('ews_mqtt_path');
+                        localStorage.removeItem('ews_mqtt_username');
+                        localStorage.removeItem('ews_mqtt_password');
+                        localStorage.removeItem('ews_topic_telemetry');
+                        localStorage.removeItem('ews_topic_threshold_set');
+                        loadSavedMqttSettings();
+                        showToast('Konfigurasi di-reset ke nilai default', 'info');
+                        addLog('INFO', 'Pengaturan MQTT di-reset ke default.');
+                    }
+                });
+            }
+
+            // Update Connection Status UI
+            function updateMqttStatusUI(status) {
+                if (status === 'connected') {
+                    isMqttConnected = true;
+                    // Header Badge
+                    if (mqttStatusText) mqttStatusText.textContent = 'Connected';
+                    if (mqttStatusDot) mqttStatusDot.className = 'relative inline-flex rounded-full h-3 w-3 bg-[#10b981]';
+                    if (mqttStatusPing) mqttStatusPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75';
+                    
+                    // Config Tag
+                    if (mqttConnectionStatusTag) mqttConnectionStatusTag.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800';
+                    if (mqttConnectionStatusTagDot) mqttConnectionStatusTagDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                    if (mqttConnectionStatusTagText) mqttConnectionStatusTagText.textContent = 'Connected to HiveMQ';
+
+                    // Connect Button
+                    if (mqttConnectBtn) {
+                        mqttConnectBtn.className = 'flex-1 sm:flex-none flex justify-center items-center gap-2 bg-red-600 text-white py-2.5 px-6 rounded-lg text-body-sm font-body-sm font-medium hover:bg-red-700 active:scale-[0.98] transition-all shadow-sm cursor-pointer';
+                    }
+                    if (mqttConnectBtnIcon) mqttConnectBtnIcon.textContent = 'link_off';
+                    if (mqttConnectBtnText) mqttConnectBtnText.textContent = 'Putuskan Koneksi';
+                } else if (status === 'connecting') {
+                    isMqttConnected = false;
+                    // Header Badge
+                    if (mqttStatusText) mqttStatusText.textContent = 'Connecting...';
+                    if (mqttStatusDot) mqttStatusDot.className = 'relative inline-flex rounded-full h-3 w-3 bg-[#f59e0b]';
+                    if (mqttStatusPing) mqttStatusPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f59e0b] opacity-75';
+
+                    // Config Tag
+                    if (mqttConnectionStatusTag) mqttConnectionStatusTag.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800';
+                    if (mqttConnectionStatusTagDot) mqttConnectionStatusTagDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                    if (mqttConnectionStatusTagText) mqttConnectionStatusTagText.textContent = 'Connecting...';
+
+                    // Connect Button
+                    if (mqttConnectBtnText) mqttConnectBtnText.textContent = 'Menghubungkan...';
+                } else {
+                    isMqttConnected = false;
+                    // Header Badge
+                    if (mqttStatusText) mqttStatusText.textContent = 'Disconnected';
+                    if (mqttStatusDot) mqttStatusDot.className = 'relative inline-flex rounded-full h-3 w-3 bg-slate-400';
+                    if (mqttStatusPing) mqttStatusPing.className = 'hidden';
+
+                    // Config Tag
+                    if (mqttConnectionStatusTag) mqttConnectionStatusTag.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700';
+                    if (mqttConnectionStatusTagDot) mqttConnectionStatusTagDot.className = 'w-2 h-2 rounded-full bg-slate-400';
+                    if (mqttConnectionStatusTagText) mqttConnectionStatusTagText.textContent = 'Disconnected';
+
+                    // Connect Button
+                    if (mqttConnectBtn) {
+                        mqttConnectBtn.className = 'flex-1 sm:flex-none flex justify-center items-center gap-2 bg-[#2563EB] text-white py-2.5 px-6 rounded-lg text-body-sm font-body-sm font-medium hover:bg-primary-fixed-variant active:scale-[0.98] transition-all shadow-sm cursor-pointer';
+                    }
+                    if (mqttConnectBtnIcon) mqttConnectBtnIcon.textContent = 'link';
+                    if (mqttConnectBtnText) mqttConnectBtnText.textContent = 'Hubungkan ke HiveMQ';
+                }
+            }
+
+            // Connect to HiveMQ Cloud
+            function connectMqtt() {
+                const host = mqttHostInput.value.trim();
+                const port = parseInt(mqttPortInput.value.trim()) || 8884;
+                let path = mqttPathInput.value.trim() || '/mqtt';
+                if (!path.startsWith('/')) path = '/' + path;
+                const username = mqttUsernameInput.value.trim();
+                const password = mqttPasswordInput.value;
+                const clientId = mqttClientIdInput.value.trim() || ('ews_web_' + Math.random().toString(36).substring(2, 9));
+
+                if (!host) {
+                    showToast('Harap masukkan HiveMQ Cloud Broker Host!', 'error');
+                    switchView('mqtt');
+                    mqttHostInput.focus();
+                    return;
+                }
+
+                saveMqttSettings(false);
+                updateMqttStatusUI('connecting');
+
+                // Construct Secure WebSocket URL
+                const brokerUrl = `wss://${host}:${port}${path}`;
+                addLog('INFO', `Menghubungkan ke ${brokerUrl}...`);
+
+                const options = {
+                    clientId: clientId,
+                    clean: true,
+                    connectTimeout: 12000,
+                    reconnectPeriod: 6000
+                };
+
+                if (username) options.username = username;
+                if (password) options.password = password;
+
+                try {
+                    if (mqttClient) {
+                        mqttClient.end(true);
+                        mqttClient = null;
+                    }
+
+                    mqttClient = mqtt.connect(brokerUrl, options);
+
+                    mqttClient.on('connect', () => {
+                        updateMqttStatusUI('connected');
+                        addLog('SUCCESS', `Terhubung ke HiveMQ Cloud (${host})!`);
+                        showToast('Berhasil terhubung ke HiveMQ Cloud!', 'success');
+                        stopSimulation();
+
+                        // Subscribe to telemetry topic
+                        const subTopic = topicTelemetryInput.value.trim() || 'ews/banjir/level';
+                        mqttClient.subscribe(subTopic, { qos: 0 }, (err) => {
+                            if (err) {
+                                addLog('ERROR', `Gagal subscribe topik: ${subTopic} (${err.message})`);
+                            } else {
+                                addLog('INFO', `Subscribed ke topik telemetry: ${subTopic}`);
+                            }
+                        });
+
+                        // Also subscribe to threshold state topic to sync if ESP32 or retained message sends it
+                        const thresholdTopic = topicThresholdSetInput.value.trim() || 'ews/banjir/threshold/set';
+                        mqttClient.subscribe(thresholdTopic, { qos: 1 }, (err) => {
+                            if (!err) {
+                                addLog('INFO', `Subscribed ke topik batas: ${thresholdTopic}`);
+                            }
+                        });
+                        mqttClient.subscribe('ews/banjir/threshold/state', { qos: 1 });
+                    });
+
+                    mqttClient.on('message', (topic, message) => {
+                        const messageStr = message.toString();
+                        const subTopic = topicTelemetryInput.value.trim() || 'ews/banjir/level';
+                        const thresholdTopic = topicThresholdSetInput.value.trim() || 'ews/banjir/threshold/set';
+
+                        // Telemetry message
+                        if (topic === subTopic || topic.endsWith('/level') || topic.endsWith('/telemetry')) {
+                            let level = null;
+                            try {
+                                const parsed = JSON.parse(messageStr);
+                                if (typeof parsed === 'object' && parsed !== null) {
+                                    level = parsed.level ?? parsed.water_level ?? parsed.ketinggian ?? parsed.distance ?? parsed.value;
+                                } else if (!isNaN(Number(parsed))) {
+                                    level = Number(parsed);
+                                }
+                            } catch(e) {
+                                if (!isNaN(Number(messageStr))) {
+                                    level = Number(messageStr);
+                                }
+                            }
+
+                            if (level !== null && !isNaN(Number(level))) {
+                                processWaterLevel(Number(level));
+                                addLog('RX', `Topik [${topic}]: Level = ${level} cm`);
+                            } else {
+                                addLog('WARN', `Pesan masuk tidak dikenali di [${topic}]: ${messageStr}`);
+                            }
+                        }
+                        // Threshold update from broker (e.g. retained message or ESP32 acknowledgment)
+                        else if (topic === thresholdTopic || topic === 'ews/banjir/threshold/state') {
+                            try {
+                                const parsed = JSON.parse(messageStr);
+                                if (parsed && typeof parsed === 'object') {
+                                    const a = parseInt(parsed.aman);
+                                    const s = parseInt(parsed.siaga);
+                                    const b = parseInt(parsed.bahaya);
+                                    if (!isNaN(a) && !isNaN(s) && !isNaN(b)) {
+                                        // Update if different from current inputs
+                                        if (a !== thresholdAmanVal || s !== thresholdSiagaVal || b !== thresholdBahayaVal) {
+                                            applyThresholdsLocally(a, s, b);
+                                            addLog('RX', `Sinkronisasi batas dari broker/ESP32: Aman=${a}, Siaga=${s}, Bahaya=${b}`);
+                                            showToast(`Batas ketinggian disinkronkan dari perangkat (Aman:${a}, Siaga:${s}, Bahaya:${b})`, 'info');
+                                        }
+                                    }
+                                }
+                            } catch(e) {}
+                        }
+                    });
+
+                    mqttClient.on('error', (err) => {
+                        addLog('ERROR', `Koneksi MQTT error: ${err.message || err}`);
+                        showToast(`MQTT Error: ${err.message || 'Koneksi gagal'}`, 'error');
+                        updateMqttStatusUI('disconnected');
+                        if (simToggle && simToggle.checked) startSimulation();
+                    });
+
+                    mqttClient.on('close', () => {
+                        updateMqttStatusUI('disconnected');
+                        if (simToggle && simToggle.checked) startSimulation();
+                    });
+
+                    mqttClient.on('reconnect', () => {
+                        updateMqttStatusUI('connecting');
+                        addLog('INFO', 'Mencoba menghubungkan ulang ke HiveMQ Cloud...');
+                    });
+
+                } catch(err) {
+                    addLog('ERROR', `Gagal inisialisasi MQTT: ${err.message}`);
+                    showToast(`Inisialisasi MQTT gagal: ${err.message}`, 'error');
+                    updateMqttStatusUI('disconnected');
+                    if (simToggle && simToggle.checked) startSimulation();
+                }
+            }
+
+            function disconnectMqtt() {
+                if (mqttClient) {
+                    mqttClient.end(false, () => {
+                        addLog('INFO', 'Koneksi MQTT diputuskan oleh pengguna.');
+                        showToast('Koneksi MQTT diputuskan.', 'info');
+                        updateMqttStatusUI('disconnected');
+                        if (simToggle && simToggle.checked) startSimulation();
+                    });
+                }
+            }
+
+            if (mqttConnectBtn) {
+                mqttConnectBtn.addEventListener('click', () => {
+                    if (isMqttConnected) {
+                        disconnectMqtt();
+                    } else {
+                        connectMqtt();
+                    }
+                });
+            }
+
+            // Save & Publish Threshold Button Logic
+            if (saveThresholdsBtn) {
+                saveThresholdsBtn.addEventListener('click', () => {
+                    const aman = parseInt(thresholdAmanInput.value);
+                    const siaga = parseInt(thresholdSiagaInput.value);
+                    const bahaya = parseInt(thresholdBahayaInput.value);
+
+                    // Validation
+                    if (isNaN(aman) || isNaN(siaga) || isNaN(bahaya)) {
+                        showToast('Harap masukkan angka yang valid untuk semua batas ketinggian!', 'error');
+                        return;
+                    }
+                    if (aman <= 0) {
+                        showToast('Batas Aman harus lebih besar dari 0 cm!', 'error');
+                        return;
+                    }
+                    if (siaga <= aman) {
+                        showToast('Batas Siaga harus lebih besar dari batas Aman!', 'error');
+                        return;
+                    }
+                    if (bahaya <= siaga) {
+                        showToast('Batas Bahaya harus lebih besar dari batas Siaga!', 'error');
+                        return;
+                    }
+
+                    // Apply locally
+                    applyThresholdsLocally(aman, siaga, bahaya);
+
+                    // If MQTT is connected, publish configuration to HiveMQ Cloud
+                    if (mqttClient && isMqttConnected) {
+                        const topicSet = topicThresholdSetInput.value.trim() || 'ews/banjir/threshold/set';
+                        const payload = JSON.stringify({
+                            aman: aman,
+                            siaga: siaga,
+                            bahaya: bahaya,
+                            updated_at: new Date().toISOString()
+                        });
+
+                        // Use retain: true so ESP32 receives it immediately when turned on
+                        mqttClient.publish(topicSet, payload, { qos: 1, retain: true }, (err) => {
+                            if (err) {
+                                addLog('ERROR', `Gagal mengirim batas ke topik ${topicSet}: ${err.message}`);
+                                showToast(`Gagal mengirim ke MQTT: ${err.message}`, 'error');
+                            } else {
+                                addLog('TX', `Topik [${topicSet}]: ${payload}`);
+                                showToast('Batas ketinggian berhasil dikirim ke HiveMQ & tersimpan untuk ESP32!', 'success');
+                            }
+                        });
+                    } else {
+                        showToast('Batas tersimpan secara lokal. Hubungkan ke HiveMQ Cloud untuk mengirim ke ESP32.', 'warning');
+                        addLog('WARN', 'Batas ketinggian disimpan lokal (MQTT belum terhubung).');
+                    }
+                });
+            }
+
+            // Initialize labels with stored values
+            applyThresholdsLocally(thresholdAmanVal, thresholdSiagaVal, thresholdBahayaVal);
+
+            // Auto-connect if credentials already exist
+            if (mqttHostInput.value.trim() && mqttUsernameInput.value.trim()) {
+                addLog('INFO', 'Kredensial tersimpan ditemukan, mencoba menghubungkan otomatis ke HiveMQ Cloud...');
+                connectMqtt();
+            } else {
+                addLog('INFO', 'Silakan masukkan Cluster Host & Kredensial HiveMQ Cloud di menu MQTT Config lalu klik "Hubungkan ke HiveMQ".');
+                startSimulation();
+            }
+        });
+    </script>
+<style>
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</body></html>
